@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'Flash Juice | deVee Boutique Label',
+  title: 'Flash Juice',
   description: 'Sped-Up & Slowed+Reverb Generator',
   icons: {
     icon: '/favicon.png', // נתיב לקובץ ששמת ב-app או ב-public
