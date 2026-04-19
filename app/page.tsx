@@ -8,21 +8,20 @@ import Image from 'next/image';
 export default function FlashJuice() {
   const [file, setFile] = useState<File | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [value, setValue] = useState(0); // מתחיל ב-0 והולך רק למעלה
+  const [value, setValue] = useState(0); 
   const [isExaggerated, setIsExaggerated] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   
   const player = useRef<Tone.Player | null>(null);
   const pitchShift = useRef<Tone.PitchShift | null>(null);
 
-  // שרשרת סאונד נקייה: Player -> PitchShift -> Destination
   useEffect(() => {
     const limiter = new Tone.Limiter(-1).toDestination();
     
+    // תיקון Type Error: הורדנו את overlap שלא קיים ב-Options של PitchShift
     pitchShift.current = new Tone.PitchShift({
       pitch: 0,
-      windowSize: 0.1, 
-      overlap: 0.1
+      windowSize: 0.1
     }).connect(limiter);
     
     return () => {
@@ -39,7 +38,8 @@ export default function FlashJuice() {
       setFile(uploadedFile);
       const url = URL.createObjectURL(uploadedFile);
       if (!player.current) {
-        player.current = new Tone.Player({ url, overlap: 0.1 }).connect(pitchShift.current!);
+        // תיקון Type Error: Player מקבל אובייקט הגדרות פשוט יותר בגרסה הזו
+        player.current = new Tone.Player(url).connect(pitchShift.current!);
       }
       await player.current.load(url);
       setIsLoaded(true);
@@ -51,7 +51,6 @@ export default function FlashJuice() {
     if (!player.current || !pitchShift.current) return;
     
     if (val === 0) {
-      // NORMAL (מקור)
       player.current.playbackRate = 1;
       pitchShift.current.pitch = 0;
       return;
@@ -59,7 +58,7 @@ export default function FlashJuice() {
 
     const factor = isExaggerated ? 1.5 : 1.0;
 
-    // SPED UP בלבד
+    // לוגיקה נקייה ל-Sped Up בלבד
     player.current.playbackRate = 1 + (val / 100) * 0.15 * factor;
     pitchShift.current.pitch = (val / 100) * 2.5 * factor;
     pitchShift.current.windowSize = 0.1;
@@ -107,7 +106,6 @@ export default function FlashJuice() {
             <span className={value > 0 ? "text-[#FF8800] transition-colors" : "text-gray-800"}>Sped-Up</span>
           </div>
           
-          {/* הסליידר עכשיו מתחיל מ-0 במקום מינוס 100 */}
           <input type="range" min="0" max="100" value={value} onChange={(e) => updateEffect(parseInt(e.target.value))} className="w-full h-[1.5px] bg-gray-900 rounded-lg appearance-none cursor-pointer accent-[#FF8800]" />
           <div className="mt-6 text-center">
             <span className="text-3xl font-bold text-white tracking-tighter">{value}%</span>
