@@ -31,6 +31,7 @@ export default function FlashJuice() {
   }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // מכת חשמל למנוע הסאונד - קריטי למובייל
     await Tone.start();
 
     const uploadedFile = e.target.files?.[0];
@@ -38,11 +39,20 @@ export default function FlashJuice() {
       setIsLoaded(false);
       setFile(uploadedFile);
       const url = URL.createObjectURL(uploadedFile);
-      if (!player.current) {
-        player.current = new Tone.Player(url).connect(pitchShift.current!);
+      
+      // אם כבר קיים נגן, ננקה אותו לפני החדש
+      if (player.current) {
+        player.current.dispose();
       }
-      await player.current.load(url);
-      setIsLoaded(true);
+      
+      player.current = new Tone.Player(url).connect(pitchShift.current!);
+      
+      try {
+        await player.current.load(url);
+        setIsLoaded(true);
+      } catch (err) {
+        console.error("Error loading audio:", err);
+      }
     }
   };
 
@@ -100,7 +110,13 @@ export default function FlashJuice() {
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-8 text-center line-clamp-1">
               {file ? file.name : "Upload Track To Juice"}
             </span>
-            <input type="file" className="hidden" onChange={handleFileUpload} accept="audio/*" />
+            {/* תיקון קריטי למובייל: פירוט פורמטים מפורש במקום audio/* */}
+            <input 
+              type="file" 
+              className="hidden" 
+              onChange={handleFileUpload} 
+              accept=".mp3,audio/mpeg,.wav,audio/wav,.m4a,audio/x-m4a" 
+            />
           </label>
 
           <div className="mb-10">
