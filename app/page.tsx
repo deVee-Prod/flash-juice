@@ -17,8 +17,6 @@ export default function FlashJuice() {
 
   useEffect(() => {
     const limiter = new Tone.Limiter(-1).toDestination();
-    
-    // תיקון Type Error: הורדנו את overlap שלא קיים ב-Options של PitchShift
     pitchShift.current = new Tone.PitchShift({
       pitch: 0,
       windowSize: 0.1
@@ -38,7 +36,6 @@ export default function FlashJuice() {
       setFile(uploadedFile);
       const url = URL.createObjectURL(uploadedFile);
       if (!player.current) {
-        // תיקון Type Error: Player מקבל אובייקט הגדרות פשוט יותר בגרסה הזו
         player.current = new Tone.Player(url).connect(pitchShift.current!);
       }
       await player.current.load(url);
@@ -57,8 +54,6 @@ export default function FlashJuice() {
     }
 
     const factor = isExaggerated ? 1.5 : 1.0;
-
-    // לוגיקה נקייה ל-Sped Up בלבד
     player.current.playbackRate = 1 + (val / 100) * 0.15 * factor;
     pitchShift.current.pitch = (val / 100) * 2.5 * factor;
     pitchShift.current.windowSize = 0.1;
@@ -76,15 +71,15 @@ export default function FlashJuice() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-between py-12 px-4 font-sans selection:bg-[#FF8800] relative overflow-hidden">
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-10 py-12 px-4 font-sans selection:bg-[#FF8800] relative overflow-hidden">
       
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 blur-[150px] rounded-full pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FF8800]/5 blur-[180px] rounded-full pointer-events-none" />
 
-      <div className="flex flex-col items-center text-center z-10 pt-4">
+      <div className="flex flex-col items-center text-center z-10">
         <div className="mb-6 relative">
           <div className="absolute inset-0 bg-[#FF8800]/15 blur-3xl rounded-full" />
-          <Image src="/logo.png" alt="Logo" width={80} height={80} style={{ height: 'auto' }} className="relative z-10" priority />
+          <Image src="/logo.png" alt="Logo" width={120} height={120} style={{ height: 'auto' }} className="relative z-10" priority />
         </div>
         <h1 className="text-[11px] font-bold tracking-[0.5em] text-gray-500 uppercase">Flash Juice</h1>
       </div>
@@ -125,7 +120,7 @@ export default function FlashJuice() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center z-10 pb-8">
+      <div className="flex flex-col items-center z-10">
         <p className="text-[9px] font-medium tracking-[0.1em] text-gray-600 mb-4">Powered by deVee Boutique Label</p>
         <div className="w-12 h-12 rounded-full overflow-hidden border border-white/[0.05]">
           <Image src="/label_logo.jpg" alt="deVee" width={48} height={48} style={{ height: 'auto' }} />
