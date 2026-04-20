@@ -18,7 +18,6 @@ export default function FlashJuice() {
 
   useEffect(() => {
     const limiter = new Tone.Limiter(-1).toDestination();
-    // מתחילים עם windowSize קטן מאוד לדיוק בטרנזיינטים
     pitchShift.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.03 }).connect(limiter);
     
     return () => {
@@ -52,7 +51,7 @@ export default function FlashJuice() {
     player.current.playbackRate = speed;
     pitchShift.current.pitch = (val / 100) * 2.5 * factor;
     
-    // תיקון הדיליי בקיקים: ככל שמהיר יותר, נקצר את ה-WindowSize כדי למנוע כפילות
+    // סוד ה-windowSize: מונע את הדיליי בקיקים
     pitchShift.current.windowSize = Math.max(0.01, 0.03 - (val / 100) * 0.02);
   };
 
@@ -63,21 +62,25 @@ export default function FlashJuice() {
     try {
       const buffer = await file.arrayBuffer();
       const audioBuffer = await Tone.getContext().decodeAudioData(buffer);
-      const duration = audioBuffer.duration / (player.current?.playbackRate || 1);
+      
+      const factor = isExaggerated ? 1.5 : 1.0;
+      const currentPlaybackRate = 1 + (value / 100) * 0.15 * factor;
+      const currentPitch = (value / 100) * 2.5 * factor;
+      const currentWindowSize = Math.max(0.01, 0.03 - (value / 100) * 0.02);
+      
+      const duration = audioBuffer.duration / currentPlaybackRate;
       
       const output = await Tone.Offline(async () => {
-        const offlinePlayer = new Tone.Player(audioBuffer).toDestination();
         const offlinePitch = new Tone.PitchShift({
-          pitch: pitchShift.current?.pitch || 0,
-          windowSize: pitchShift.current?.windowSize || 0.03
+          pitch: currentPitch,
+          windowSize: currentWindowSize 
         }).toDestination();
         
-        offlinePlayer.connect(offlinePitch);
-        offlinePlayer.playbackRate = player.current?.playbackRate || 1;
+        const offlinePlayer = new Tone.Player(audioBuffer).connect(offlinePitch);
+        offlinePlayer.playbackRate = currentPlaybackRate;
         offlinePlayer.start(0);
       }, duration);
 
-      // תיקון ה-Build Error: שימוש ב-buffer המקורי
       const wav = audioBufferToWav((output as any)._buffer || output);
       const blob = new Blob([wav], { type: 'audio/wav' });
       const url = URL.createObjectURL(blob);
@@ -92,7 +95,6 @@ export default function FlashJuice() {
     setIsExporting(false);
   };
 
-  // פונקציית WAV מעודכנת שעוברת Build חלק
   function audioBufferToWav(buffer: any) {
     let numOfChan = buffer.numberOfChannels,
         length = buffer.length * numOfChan * 2 + 44,
@@ -113,7 +115,8 @@ export default function FlashJuice() {
     for(i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
     while(pos < length) {
       for(i = 0; i < numOfChan; i++) {
-        sample = Math.max(-1, Math.min(1, channels[i][Math.floor((pos-44)/(numOfChan*2))]));
+        const sampleIndex = Math.floor((pos - 44) / (numOfChan * 2));
+        sample = Math.max(-1, Math.min(1, channels[i][sampleIndex]));
         view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
         pos += 2;
       }
