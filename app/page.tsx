@@ -29,18 +29,27 @@ export default function FlashJuice() {
     };
   }, []);
 
+  // FIX 1: Mobile file upload — dispose old player, use onload callback
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0];
-    if (uploadedFile) {
-      setIsLoaded(false);
-      setFile(uploadedFile);
-      const url = URL.createObjectURL(uploadedFile);
-      if (!player.current) {
-        player.current = new Tone.Player(url).connect(pitchShift.current!);
-      }
-      await player.current.load(url);
-      setIsLoaded(true);
+    if (!uploadedFile) return;
+
+    setIsLoaded(false);
+    setIsPlaying(false);
+    setFile(uploadedFile);
+
+    if (player.current) {
+      player.current.stop();
+      player.current.dispose();
+      player.current = null;
     }
+
+    const url = URL.createObjectURL(uploadedFile);
+    player.current = new Tone.Player({
+      url,
+      onload: () => setIsLoaded(true),
+      onerror: (e) => console.error('Load error:', e),
+    }).connect(pitchShift.current!);
   };
 
   const updateEffect = (val: number) => {
@@ -71,12 +80,13 @@ export default function FlashJuice() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-between py-12 px-4 font-sans selection:bg-[#FF8800] relative overflow-hidden">
+    // FIX 2: Replace justify-between + py-12 with gap-8 + py-8 for mobile spacing
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-8 py-8 px-4 font-sans selection:bg-[#FF8800] relative overflow-hidden">
       
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 blur-[150px] rounded-full pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FF8800]/5 blur-[180px] rounded-full pointer-events-none" />
 
-      <div className="flex flex-col items-center text-center z-10 pt-4">
+      <div className="flex flex-col items-center text-center z-10">
         <div className="mb-6 relative">
           <div className="absolute inset-0 bg-[#FF8800]/15 blur-3xl rounded-full" />
           <Image src="/logo.png" alt="Logo" width={120} height={120} style={{ height: 'auto' }} className="relative z-10" priority />
@@ -120,7 +130,7 @@ export default function FlashJuice() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center z-10 pb-8">
+      <div className="flex flex-col items-center z-10">
         <p className="text-[9px] font-medium tracking-[0.1em] text-gray-600 mb-4">Powered by deVee Boutique Label</p>
         <div className="w-12 h-12 rounded-full overflow-hidden border border-white/[0.05]">
           <Image src="/label_logo.jpg" alt="deVee" width={48} height={48} style={{ height: 'auto' }} />
