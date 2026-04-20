@@ -102,7 +102,7 @@ export default function FlashJuice() {
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-8 text-center line-clamp-1">
             {file ? file.name : "Upload Track To Juice"}
           </span>
-          <input type="file" className="hidden" onChange={handleFileUpload} accept="audio/*" />
+          <input type="file" className="hidden" onChange={handleFileUpload} accept=".mp3,.wav,.aiff,.aac,.m4a,audio/*" />
         </label>
 
         <div className="mb-10">
