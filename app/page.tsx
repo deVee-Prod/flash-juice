@@ -18,7 +18,8 @@ export default function FlashJuice() {
 
   useEffect(() => {
     const limiter = new Tone.Limiter(-1).toDestination();
-    pitchShift.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.1 }).connect(limiter);
+    // מתחילים עם windowSize קטן מאוד לדיוק בטרנזיינטים
+    pitchShift.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.03 }).connect(limiter);
     
     return () => {
       player.current?.dispose();
@@ -44,66 +45,92 @@ export default function FlashJuice() {
   const updateEffect = (val: number) => {
     setValue(val);
     if (!player.current || !pitchShift.current) return;
+    
     const factor = isExaggerated ? 1.5 : 1.0;
-    player.current.playbackRate = 1 + (val / 100) * 0.15 * factor;
+    const speed = 1 + (val / 100) * 0.15 * factor;
+    
+    player.current.playbackRate = speed;
     pitchShift.current.pitch = (val / 100) * 2.5 * factor;
+    
+    // תיקון הדיליי בקיקים: ככל שמהיר יותר, נקצר את ה-WindowSize כדי למנוע כפילות
+    pitchShift.current.windowSize = Math.max(0.01, 0.03 - (val / 100) * 0.02);
   };
 
   const downloadJuicedFile = async () => {
     if (!file || !isLoaded) return;
     setIsExporting(true);
 
-    const buffer = await file.arrayBuffer();
-    const audioBuffer = await Tone.getContext().decodeAudioData(buffer);
-    const duration = audioBuffer.duration / (player.current?.playbackRate || 1);
-    
-    const output = await Tone.Offline(async () => {
-      const offlinePlayer = new Tone.Player(audioBuffer).toDestination();
-      const offlinePitch = new Tone.PitchShift({
-        pitch: pitchShift.current?.pitch || 0,
-        windowSize: 0.1
-      }).toDestination();
-      offlinePlayer.connect(offlinePitch);
-      offlinePlayer.playbackRate = player.current?.playbackRate || 1;
-      offlinePlayer.start(0);
-    }, duration);
+    try {
+      const buffer = await file.arrayBuffer();
+      const audioBuffer = await Tone.getContext().decodeAudioData(buffer);
+      const duration = audioBuffer.duration / (player.current?.playbackRate || 1);
+      
+      const output = await Tone.Offline(async () => {
+        const offlinePlayer = new Tone.Player(audioBuffer).toDestination();
+        const offlinePitch = new Tone.PitchShift({
+          pitch: pitchShift.current?.pitch || 0,
+          windowSize: pitchShift.current?.windowSize || 0.03
+        }).toDestination();
+        
+        offlinePlayer.connect(offlinePitch);
+        offlinePlayer.playbackRate = player.current?.playbackRate || 1;
+        offlinePlayer.start(0);
+      }, duration);
 
-    const wav = audioBufferToWav(output);
-    const blob = new Blob([wav], { type: 'audio/wav' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.download = `Juiced_${file.name.split('.')[0]}.wav`;
-    anchor.href = url;
-    anchor.click();
+      // תיקון ה-Build Error: שימוש ב-buffer המקורי
+      const wav = audioBufferToWav((output as any)._buffer || output);
+      const blob = new Blob([wav], { type: 'audio/wav' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.download = `Juiced_${file.name.split('.')[0]}.wav`;
+      anchor.href = url;
+      anchor.click();
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
+    
     setIsExporting(false);
   };
 
-  function audioBufferToWav(buffer: AudioBuffer) {
+  // פונקציית WAV מעודכנת שעוברת Build חלק
+  function audioBufferToWav(buffer: any) {
     let numOfChan = buffer.numberOfChannels,
         length = buffer.length * numOfChan * 2 + 44,
         bufferArr = new ArrayBuffer(length),
         view = new DataView(bufferArr),
-        channels = [], i, sample,
-        offset = 0,
-        pos = 0;
-    setUint32(0x46464952); view.setUint32(4, 36 + buffer.length * numOfChan * 2, true);
-    setUint32(0x45564157); setUint32(0x20746d66); view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true); view.setUint16(22, numOfChan, true);
-    view.setUint32(24, buffer.sampleRate, true); view.setUint32(28, buffer.sampleRate * 2 * numOfChan, true);
-    view.setUint16(32, numOfChan * 2, true); view.setUint16(34, 16, true);
-    setUint32(0x61746164); view.setUint32(40, buffer.length * numOfChan * 2, true);
+        channels = [], i, sample, offset = 0, pos = 0;
+    
+    const setUint32 = (data: number) => { view.setUint32(pos, data, true); pos += 4; };
+    const setUint16 = (data: number) => { view.setUint16(pos, data, true); pos += 2; };
+
+    setUint32(0x46464952); setUint32(36 + buffer.length * numOfChan * 2);
+    setUint32(0x45564157); setUint32(0x20746d66); setUint32(16);
+    setUint16(1); setUint16(numOfChan);
+    setUint32(buffer.sampleRate); setUint32(buffer.sampleRate * 2 * numOfChan);
+    setUint16(numOfChan * 2); setUint16(16);
+    setUint32(0x61746164); setUint32(buffer.length * numOfChan * 2);
+
     for(i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
-    while(pos < buffer.length) {
+    while(pos < length) {
       for(i = 0; i < numOfChan; i++) {
-        sample = Math.max(-1, Math.min(1, channels[i][pos]));
-        view.setInt16(44 + offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-        offset += 2;
+        sample = Math.max(-1, Math.min(1, channels[i][Math.floor((pos-44)/(numOfChan*2))]));
+        view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        pos += 2;
       }
-      pos++;
     }
     return bufferArr;
-    function setUint32(data: any) { view.setUint32(4 + pos, data, true); pos += 4; }
   }
+
+  const togglePlay = async () => {
+    if (!isLoaded) return;
+    await Tone.start();
+    if (isPlaying) {
+      player.current?.stop();
+    } else {
+      player.current?.start();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   return (
     <main className="relative min-h-[100dvh] w-full flex flex-col items-center justify-between overflow-hidden bg-black text-white px-6 py-10 md:py-16 font-sans selection:bg-[#FF8800]">
@@ -137,7 +164,6 @@ export default function FlashJuice() {
               <span>Preview</span>
             </button>
 
-            {/* כפתור ה-Download החדש - נקי, יוקרתי, ללא ג'ונגל */}
             <button 
               onClick={downloadJuicedFile} 
               disabled={!isLoaded || isExporting} 
