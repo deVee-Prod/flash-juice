@@ -1,81 +1,82 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react';
-import * as Tone from 'tone';
+import React, { useState, useRef } from 'react';
 import { Upload, Play, Pause, Download } from 'lucide-react';
 import Image from 'next/image';
 
 export default function FlashJuice() {
   const [file, setFile] = useState<File | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [value, setValue] = useState(0); 
-  const [isExaggerated, setIsExaggerated] = useState(false);
+  const [value, setValue] = useState(0);
+  const [isExaggerated] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  
-  const player = useRef<Tone.Player | null>(null);
-  const pitchShift = useRef<Tone.PitchShift | null>(null);
 
-  useEffect(() => {
-    const limiter = new Tone.Limiter(-1).toDestination();
-    pitchShift.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.03 }).connect(limiter);
-    
-    return () => {
-      player.current?.dispose();
-      pitchShift.current?.dispose();
-      limiter.dispose();
-    };
-  }, []);
+  const playerRef = useRef<any>(null);
+  const pitchShiftRef = useRef<any>(null);
+  const ToneRef = useRef<any>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    await Tone.start();
     const uploadedFile = e.target.files?.[0];
-    if (uploadedFile) {
-      setIsLoaded(false);
-      setFile(uploadedFile);
-      const url = URL.createObjectURL(uploadedFile);
-      if (player.current) player.current.dispose();
-      player.current = new Tone.Player(url).connect(pitchShift.current!);
-      await player.current.load(url);
-      setIsLoaded(true);
+    if (!uploadedFile) return;
+
+    setIsLoaded(false);
+    setFile(uploadedFile);
+
+    if (!ToneRef.current) {
+      ToneRef.current = await import('tone');
     }
+    const Tone = ToneRef.current;
+
+    await Tone.start();
+
+    if (!pitchShiftRef.current) {
+      const limiter = new Tone.Limiter(-1).toDestination();
+      pitchShiftRef.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.03 }).connect(limiter);
+    }
+
+    const url = URL.createObjectURL(uploadedFile);
+    if (playerRef.current) playerRef.current.dispose();
+    playerRef.current = new Tone.Player(url).connect(pitchShiftRef.current);
+    await playerRef.current.load(url);
+    setIsLoaded(true);
   };
 
   const updateEffect = (val: number) => {
     setValue(val);
-    if (!player.current || !pitchShift.current) return;
-    
+    if (!playerRef.current || !pitchShiftRef.current) return;
+
     const factor = isExaggerated ? 1.5 : 1.0;
     const speed = 1 + (val / 100) * 0.15 * factor;
-    
-    player.current.playbackRate = speed;
-    pitchShift.current.pitch = (val / 100) * 2.5 * factor;
-    
-    // סוד ה-windowSize: מונע את הדיליי בקיקים
-    pitchShift.current.windowSize = Math.max(0.01, 0.03 - (val / 100) * 0.02);
+
+    playerRef.current.playbackRate = speed;
+    pitchShiftRef.current.pitch = (val / 100) * 2.5 * factor;
+    pitchShiftRef.current.windowSize = Math.max(0.01, 0.03 - (val / 100) * 0.02);
   };
 
   const downloadJuicedFile = async () => {
-    if (!file || !isLoaded) return;
+    if (!file || !isLoaded || !ToneRef.current) return;
     setIsExporting(true);
+
+    const Tone = ToneRef.current;
 
     try {
       const buffer = await file.arrayBuffer();
       const audioBuffer = await Tone.getContext().decodeAudioData(buffer);
-      
+
       const factor = isExaggerated ? 1.5 : 1.0;
       const currentPlaybackRate = 1 + (value / 100) * 0.15 * factor;
       const currentPitch = (value / 100) * 2.5 * factor;
       const currentWindowSize = Math.max(0.01, 0.03 - (value / 100) * 0.02);
-      
+
       const duration = audioBuffer.duration / currentPlaybackRate;
-      
+
       const output = await Tone.Offline(async () => {
         const offlinePitch = new Tone.PitchShift({
           pitch: currentPitch,
-          windowSize: currentWindowSize 
+          windowSize: currentWindowSize
         }).toDestination();
-        
+
         const offlinePlayer = new Tone.Player(audioBuffer).connect(offlinePitch);
         offlinePlayer.playbackRate = currentPlaybackRate;
         offlinePlayer.start(0);
@@ -91,17 +92,17 @@ export default function FlashJuice() {
     } catch (err) {
       console.error("Export failed:", err);
     }
-    
+
     setIsExporting(false);
   };
 
   function audioBufferToWav(buffer: any) {
     let numOfChan = buffer.numberOfChannels,
-        length = buffer.length * numOfChan * 2 + 44,
-        bufferArr = new ArrayBuffer(length),
-        view = new DataView(bufferArr),
-        channels = [], i, sample, offset = 0, pos = 0;
-    
+      length = buffer.length * numOfChan * 2 + 44,
+      bufferArr = new ArrayBuffer(length),
+      view = new DataView(bufferArr),
+      channels = [], i, sample, pos = 0;
+
     const setUint32 = (data: number) => { view.setUint32(pos, data, true); pos += 4; };
     const setUint16 = (data: number) => { view.setUint16(pos, data, true); pos += 2; };
 
@@ -112,9 +113,9 @@ export default function FlashJuice() {
     setUint16(numOfChan * 2); setUint16(16);
     setUint32(0x61746164); setUint32(buffer.length * numOfChan * 2);
 
-    for(i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
-    while(pos < length) {
-      for(i = 0; i < numOfChan; i++) {
+    for (i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+    while (pos < length) {
+      for (i = 0; i < numOfChan; i++) {
         const sampleIndex = Math.floor((pos - 44) / (numOfChan * 2));
         sample = Math.max(-1, Math.min(1, channels[i][sampleIndex]));
         view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
@@ -125,12 +126,12 @@ export default function FlashJuice() {
   }
 
   const togglePlay = async () => {
-    if (!isLoaded) return;
-    await Tone.start();
+    if (!isLoaded || !ToneRef.current) return;
+    await ToneRef.current.start();
     if (isPlaying) {
-      player.current?.stop();
+      playerRef.current?.stop();
     } else {
-      player.current?.start();
+      playerRef.current?.start();
     }
     setIsPlaying(!isPlaying);
   };
@@ -138,7 +139,7 @@ export default function FlashJuice() {
   return (
     <main className="relative min-h-[100dvh] w-full flex flex-col items-center justify-between overflow-hidden bg-black text-white px-6 py-10 md:py-16 font-sans selection:bg-[#FF8800]">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 blur-[150px] rounded-full pointer-events-none" />
-      
+
       <header className="relative z-10 w-full flex flex-col items-center gap-4 shrink-0">
         <Image src="/logo.png" alt="Logo" width={80} height={80} priority />
         <h1 className="text-[11px] font-bold tracking-[0.5em] text-gray-500 uppercase">Flash Juice</h1>
@@ -167,9 +168,9 @@ export default function FlashJuice() {
               <span>Preview</span>
             </button>
 
-            <button 
-              onClick={downloadJuicedFile} 
-              disabled={!isLoaded || isExporting} 
+            <button
+              onClick={downloadJuicedFile}
+              disabled={!isLoaded || isExporting}
               className="w-full bg-[#101010] border border-[#FF8800]/10 hover:border-[#FF8800]/50 text-[#FF8800] py-5 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] disabled:opacity-30 uppercase tracking-[0.2em] text-[10px] shadow-[0_0_15px_rgba(255,136,0,0.05)] hover:shadow-[0_0_20px_rgba(255,136,0,0.15)]"
             >
               {isExporting ? <div className="animate-spin h-4 w-4 border-2 border-[#FF8800] border-t-transparent rounded-full" /> : <Download size={18} />}
