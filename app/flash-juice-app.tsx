@@ -137,7 +137,7 @@ export default function FlashJuice() {
   };
 
   return (
-    <main className="relative min-h-[100dvh] w-full flex flex-col items-center justify-between overflow-hidden bg-black text-white px-6 py-10 md:py-16 font-sans selection:bg-[#FF8800]">
+    <main className="relative min-h-[100dvh] w-full flex flex-col items-center justify-between overflow-hidden text-white px-6 py-10 md:py-16 font-sans selection:bg-[#FF8800]">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 blur-[150px] rounded-full pointer-events-none" />
 
       <header className="relative z-10 w-full flex flex-col items-center gap-4 shrink-0">

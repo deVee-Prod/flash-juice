@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { DriftingGridBackground } from './components/DriftingGridBackground';
 
 export const metadata = {
   title: 'Flash Juice',
@@ -10,7 +11,10 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="relative min-h-full flex flex-col">
+        <DriftingGridBackground />
+        <div className="relative z-10 flex flex-col min-h-full">{children}</div>
+      </body>
     </html>
   );
 }
