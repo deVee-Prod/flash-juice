@@ -3,6 +3,7 @@ import "./globals.css";
 import { DriftingGridBackground } from './components/DriftingGridBackground';
 import { ToolHeader } from './components/ToolHeader';
 
+
 export const metadata = {
   title: 'Flash Juice',
   description: 'Sped-Up & Slowed+Reverb Generator',
