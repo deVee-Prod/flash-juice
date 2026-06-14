@@ -183,7 +183,7 @@ export default function FlashJuice() {
       <footer className="relative z-10 w-full flex flex-col items-center gap-4 shrink-0">
         <p className="text-[9px] font-medium tracking-[0.1em] text-gray-600">Powered by deVee Boutique Label</p>
         <div className="w-12 h-12 rounded-full overflow-hidden border border-white/[0.05]">
-          <Image src="/label_logo.jpg" alt="deVee" width={48} height={48} />
+          <Image src="/label_logo.png" alt="deVee" width={48} height={48} />
         </div>
       </footer>
     </main>
