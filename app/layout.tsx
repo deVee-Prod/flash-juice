@@ -6,7 +6,7 @@ import { ToolHeader } from './components/ToolHeader';
 
 export const metadata = {
   title: 'Flash Juice',
-  description: 'Sped-Up & Slowed+Reverb Generator',
+  description: "Create a fast-paced (sped up) version of any chosen song.",
   icons: { icon: '/favicon.png' },
 }
 
