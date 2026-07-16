@@ -140,9 +140,9 @@ export default function FlashJuice() {
     <main className="relative min-h-[100dvh] w-full flex flex-col items-center justify-between overflow-hidden text-white px-6 py-10 md:py-16 font-sans selection:bg-[#FF8800]">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 blur-[150px] rounded-full pointer-events-none" />
 
-      <header className="relative z-10 w-full flex flex-col items-center gap-4 shrink-0">
-        <Image src="/logo.png" alt="Logo" width={80} height={80} priority />
-        <h1 className="text-[11px] font-bold tracking-[0.5em] text-gray-500 uppercase">Flash Juice</h1>
+      <header className="relative z-20 flex flex-col items-center shrink-0 mb-4 pt-6">
+        <img src="/logo.png" alt="Logo" className="w-[100px] h-[100px] mb-2 object-contain" />
+        <h1 className="text-[10px] font-bold tracking-[0.5em] uppercase text-white/60">Flash Juice</h1>
       </header>
 
       <div className="relative z-10 w-full max-w-[400px] my-auto py-8">
