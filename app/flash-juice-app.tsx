@@ -180,12 +180,14 @@ export default function FlashJuice() {
         </div>
       </div>
 
-      <footer className="relative z-10 w-full flex flex-col items-center gap-4 shrink-0">
-        <p className="text-[9px] font-medium tracking-[0.1em] text-gray-600">Powered by deVee Boutique Label</p>
-        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/[0.05]">
-          <Image src="/label_logo.png" alt="deVee" width={48} height={48} />
-        </div>
-      </footer>
+      {/* Floating Logo Watermark (Desktop Only) */}
+      <div className="hidden md:flex fixed bottom-6 left-6 z-50 opacity-40 hover:opacity-100 transition-opacity duration-300">
+        <a href="https://devee-music.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+            <img src="/label_logo.png" alt="deVee" className="w-full h-full object-cover" />
+          </div>
+        </a>
+      </div>
     </main>
   );
 }
