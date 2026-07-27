@@ -145,10 +145,10 @@ export default function FlashJuice() {
  <h1 className="text-[10px] font-bold tracking-[0.5em] uppercase text-white/60">Flash Juice</h1>
  </header>
 
- <div className="relative z-10 w-full max-w-[400px] my-auto py-8">
- <div className="w-full bg-[#0E0E0E] border border-white/[0.04] rounded-[2rem] p-9 shadow-2xl">
- <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-white/10 rounded-3xl cursor-pointer hover:border-[#FF8800]/40 transition-all mb-8 group/upload">
- <div className="bg-[#151515] p-3 rounded-full mb-3 group-hover/upload:scale-105 transition-transform">
+      <div className="relative z-10 w-full max-w-xl my-auto py-8">
+        <div className="w-full bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] p-10 space-y-8 border border-white/5 shadow-2xl">
+          <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-white/10 rounded-2xl p-12 cursor-pointer hover:border-[#FF8800]/40 transition-all group/upload">
+            <div className="bg-[#151515] p-3 rounded-full mb-3 group-hover/upload:scale-105 transition-transform">
  <Upload className="text-[#FF8800]" size={20} />
  </div>
  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-8 text-center line-clamp-1">
@@ -157,12 +157,12 @@ export default function FlashJuice() {
  <input type="file" className="hidden" onChange={handleFileUpload} accept=".mp3,.wav,.m4a" />
  </label>
 
- <div className="mb-10">
- <input type="range" min="0" max="100" value={value} onChange={(e) => updateEffect(parseInt(e.target.value))} className="w-full h-[1.5px] bg-gray-900 rounded-lg appearance-none cursor-pointer accent-[#FF8800]" />
- <div className="mt-6 text-center text-3xl font-bold font-mono tracking-tighter">{value}%</div>
- </div>
+          <div className="">
+            <input type="range" min="0" max="100" value={value} onChange={(e) => updateEffect(parseInt(e.target.value))} className="w-full h-[1.5px] bg-gray-900 rounded-lg appearance-none cursor-pointer accent-[#FF8800]" />
+            <div className="mt-6 text-center text-3xl font-bold font-mono tracking-tighter">{value}%</div>
+          </div>
 
- <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-4">
  <button onClick={togglePlay} disabled={!isLoaded} className="w-full bg-[#1A1A1A] border border-white/[0.03] hover:bg-white hover:text-black py-5 rounded-2xl flex items-center justify-center space-x-3 transition-all uppercase tracking-[0.2em] text-[10px]">
  {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
  <span>Preview</span>
