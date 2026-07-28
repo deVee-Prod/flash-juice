@@ -149,8 +149,8 @@ export default function FlashJuice() {
       </header>
 
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div className="w-full max-w-xl bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] p-10 space-y-8 border border-white/5 shadow-2xl relative z-20">
-          <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-white/10 rounded-2xl p-12 cursor-pointer hover:border-[#FF8800]/40 transition-all group/upload">
+        <div className="w-full max-w-xl bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] p-6 md:p-10 space-y-6 md:space-y-8 border border-white/5 shadow-2xl relative z-20">
+          <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-white/10 rounded-2xl p-8 md:p-12 cursor-pointer hover:border-[#FF8800]/40 transition-all group/upload">
             <div className="bg-[#151515] p-3 rounded-full mb-3 group-hover/upload:scale-105 transition-transform">
  <Upload className="text-[#FF8800]" size={20} />
  </div>
