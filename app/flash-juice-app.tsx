@@ -136,17 +136,20 @@ export default function FlashJuice() {
  setIsPlaying(!isPlaying);
  };
 
- return (
- <main className="relative min-h-[100dvh] w-full flex flex-col items-center overflow-hidden text-white px-6 pb-10 md:pb-16 selection:bg-[#FF8800]">
- <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 blur-[150px] rounded-full pointer-events-none" />
+  return (
+    <div className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden" dir="ltr">
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#FF8800]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-[#FF8800]/5 rounded-full blur-[100px]" />
+      </div>
 
- <header className="w-full relative z-20 flex flex-col items-center shrink-0 mt-8 mb-6">
- <img src="/logo.png" alt="Logo" className="w-[100px] h-[100px] mb-2 object-contain" />
- <h1 className="text-[10px] font-bold tracking-[0.5em] uppercase text-white/60">Flash Juice</h1>
- </header>
+      <header className="w-full relative z-20 flex flex-col items-center shrink-0 mt-8 mb-6">
+        <img src="/logo.png" alt="Logo" className="w-[100px] h-[100px] mb-2 object-contain" />
+        <h1 className="text-[10px] font-bold tracking-[0.5em] uppercase text-white/60">Flash Juice</h1>
+      </header>
 
-      <div className="relative z-10 w-full max-w-xl my-auto py-8">
-        <div className="w-full bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] p-10 space-y-8 border border-white/5 shadow-2xl">
+      <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+        <div className="w-full max-w-xl bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] p-10 space-y-8 border border-white/5 shadow-2xl relative z-20">
           <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-white/10 rounded-2xl p-12 cursor-pointer hover:border-[#FF8800]/40 transition-all group/upload">
             <div className="bg-[#151515] p-3 rounded-full mb-3 group-hover/upload:scale-105 transition-transform">
  <Upload className="text-[#FF8800]" size={20} />
@@ -176,11 +179,8 @@ export default function FlashJuice() {
  {isExporting ? <div className="animate-spin h-4 w-4 border-2 border-[#FF8800] border-t-transparent rounded-full" /> : <Download size={18} />}
  <span>{isExporting ? "Juicing..." : "Juice & Download"}</span>
  </button>
- </div>
- </div>
- </div>
-
-
- </main>
- );
+        </div>
+      </main>
+    </div>
+  );
 }
