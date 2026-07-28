@@ -180,6 +180,7 @@ export default function FlashJuice() {
  <span>{isExporting ? "Juicing..." : "Juice & Download"}</span>
  </button>
         </div>
+        </div>
       </main>
     </div>
   );
